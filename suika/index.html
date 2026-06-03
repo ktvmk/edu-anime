@@ -75,6 +75,15 @@
     max-width:100vw; max-height:calc(100vh - 150px); margin:0 auto; border-radius:0; }
   .wrap:fullscreen .dots, .wrap:-webkit-full-screen .dots, .wrap.pfs .dots{ margin:6px 0; flex:0 0 auto; }
   .wrap:fullscreen .panel, .wrap:-webkit-full-screen .panel, .wrap.pfs .panel{ margin:6px auto 8px; flex:0 0 auto; }
+
+  /* 古いブラウザ(幅比例cqw非対応)向けの固定px予備 */
+  @supports not (width:1cqw){
+    .scenelabel{ font-size:23px; min-height:28px; }
+    .titletext{ font-size:46px; } .hint{ font-size:18px; }
+    .slot{ width:62px; height:62px; } .slot .no{ font-size:24px; }
+    .kw .giza{ width:200px; } .kw .kwtext{ font-size:25px; }
+    .dots span{ width:13px; height:13px; }
+  }
 </style>
 </head>
 <body>
@@ -282,15 +291,21 @@ $('pause').onclick=()=>{
 $('next').onclick=()=>{ stopAudio(); busy=false; setBtns(false); $('pause').textContent="⏸ ストップ"; setScene(cur+1); };
 $('prev').onclick=()=>{ stopAudio(); busy=false; setBtns(false); $('pause').textContent="⏸ ストップ"; setScene(cur-1); };
 $('replay').onclick=()=>{ stopAudio(); busy=false; setBtns(false); $('pause').textContent="⏸ ストップ"; setScene(0); };
+function exitPfs(){ const w=document.querySelector('.wrap'); if(w.classList.contains('pfs')){ w.classList.remove('pfs'); $('fs').textContent='⛶ ぜんがめん'; } }
 $('fs').onclick=()=>{
   const w=document.querySelector('.wrap');
+  if(w.classList.contains('pfs')){ exitPfs(); return; }                   // 擬似全画面を解除
+  if(document.fullscreenElement){ document.exitFullscreen?.(); return; }   // ネイティブ全画面を解除
   const req=w.requestFullscreen||w.webkitRequestFullscreen;
   if(document.fullscreenEnabled && req){
-    if(!document.fullscreenElement){ req.call(w); } else { document.exitFullscreen?.(); }
+    try{ const p=req.call(w); if(p&&p.catch) p.catch(()=>{}); }catch(e){}
+    setTimeout(()=>{ if(!document.fullscreenElement){ w.classList.add('pfs'); $('fs').textContent='⛶ もとに もどす'; } }, 350); // 効かない環境(学校PC等)は擬似全画面へ自動切替
   } else {
-    w.classList.toggle('pfs');   // iOS等 native全画面不可 → 擬似全画面
+    w.classList.add('pfs'); $('fs').textContent='⛶ もとに もどす';
   }
 };
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') exitPfs(); });
+document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElement) $('fs').textContent='⛶ ぜんがめん'; });
 $('stopbgm').onclick=()=>{ bgmMuted=!bgmMuted;
   if(bgmMuted){ bgm.pause(); $('stopbgm').textContent="♪ おんがく つける"; }
   else { bgm.volume=0.16; bgm.play().catch(()=>{}); $('stopbgm').textContent="♪ おんがく とめる"; } };
