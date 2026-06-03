@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>きょうざい あにめ</title>
+<style>
+  @font-face{ font-family:"PopJP"; src:url("font/MochiyPopOne-Regular.ttf") format("truetype"); font-display:swap; }
+  :root{ color-scheme:light only; }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; padding:0; min-height:100%; }
+  body{
+    font-family:"PopJP","Hiragino Maru Gothic ProN","Yu Gothic UI",sans-serif;
+    background:linear-gradient(160deg,#fff7e6 0%,#ffe9ef 50%,#e6f6ff 100%);
+    color:#333; text-align:center;
+    display:flex; flex-direction:column; align-items:center;
+    padding:6vh 4vw 8vh;
+  }
+  h1{ font-size:clamp(28px,7vw,52px); color:#e8702a; margin:0 0 8px; letter-spacing:2px; }
+  .sub{ font-size:clamp(14px,3.4vw,20px); color:#6b6b6b; margin:0 0 6vh; }
+  .grid{
+    display:grid; gap:clamp(18px,4vw,34px);
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    width:100%; max-width:920px;
+  }
+  a.card{
+    display:block; text-decoration:none; color:#333;
+    background:#fff; border-radius:28px; padding:18px 16px 22px;
+    box-shadow:0 8px 22px rgba(0,0,0,.10);
+    border:4px solid #fff; transition:transform .12s ease, box-shadow .12s ease;
+  }
+  a.card:active{ transform:scale(.97); }
+  a.card:hover{ transform:translateY(-4px); box-shadow:0 14px 30px rgba(0,0,0,.16); }
+  .thumb{
+    width:100%; aspect-ratio:4/3; border-radius:20px; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; margin-bottom:12px;
+  }
+  .thumb img{ width:100%; height:100%; object-fit:cover; }
+  .name{ font-size:clamp(20px,4.6vw,28px); }
+  .c1 .thumb{ background:#ffe7b3; } .c1{ border-color:#ffcf66; }
+  .c2 .thumb{ background:#cdeafc; } .c2{ border-color:#7fc4f5; }
+  .c3 .thumb{ background:#d8f3df; } .c3{ border-color:#86d79a; }
+  .foot{ margin-top:7vh; font-size:13px; color:#9a9a9a; line-height:1.7; }
+</style>
+</head>
+<body>
+  <h1>きょうざい あにめ</h1>
+  <p class="sub">えらんで ボタンを おしてね</p>
+  <div class="grid">
+    <a class="card c1" href="suika/">
+      <div class="thumb"><img src="suika/img/haikei_suika.png" alt="スイカわり"></div>
+      <div class="name">スイカわり</div>
+    </a>
+    <a class="card c2" href="shingo/">
+      <div class="thumb"><img src="shingo/img/haikei_shingo4.png" alt="しんごう"></div>
+      <div class="name">しんごう</div>
+    </a>
+    <a class="card c3" href="seesaw/">
+      <div class="thumb"><img src="seesaw/img/haikei_seesaw.png" alt="シーソー"></div>
+      <div class="name">シーソー</div>
+    </a>
+  </div>
+  <p class="foot">藤田真生 先生 用 ／ C層むけ HTML教材アニメ<br>うごかないときは、もういちど ページを よみこんでね</p>
+</body>
+</html>

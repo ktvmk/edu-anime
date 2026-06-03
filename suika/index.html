@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>スイカわりを しよう v2</title>
+<style>
+  @font-face{ font-family:"PopJP"; src:url("font/MochiyPopOne-Regular.ttf") format("truetype"); font-display:swap; }
+  :root{ color-scheme:light only; }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ background:#fff !important; color:#1a2a3a !important; font-family:"PopJP","Hiragino Maru Gothic ProN",sans-serif; }
+  @media (prefers-color-scheme:dark){ html,body{background:#fff!important;color:#1a2a3a!important;} }
+  .wrap{ max-width:min(98vw, calc((100vh - 150px) * 16 / 9)); margin:0 auto; padding:8px 10px 18px; }
+  .scenelabel{ text-align:center; font-size:23px; color:#1f7a37; margin-bottom:6px; min-height:28px; }
+
+  .stage{ position:relative; width:100%; aspect-ratio:16/9; border-radius:18px; overflow:hidden;
+    box-shadow:0 8px 28px rgba(0,0,0,.16); background:#bfe6f5; }
+  .stage img.bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .layer{ position:absolute; bottom:8%; opacity:0; transition:opacity .3s ease, transform .45s ease;
+    filter:drop-shadow(0 4px 4px rgba(0,0,0,.18)); pointer-events:none; }
+  .show{ opacity:1 !important; }
+
+  /* タイトル */
+  .kanban{ left:50%; top:24%; bottom:auto; transform:translateX(-50%); width:58%; }
+  .titletext{ position:absolute; left:50%; top:52%; transform:translate(-50%,-50%) scale(.6);
+    font-size:46px; color:#3a7d2c; opacity:0; transition:opacity .4s,transform .4s; white-space:nowrap; text-shadow:2px 2px 0 #fff; z-index:6; }
+  .titletext.show{ opacity:1; transform:translate(-50%,-50%) scale(1); }
+  .hint{ position:absolute; left:50%; top:74%; transform:translateX(-50%); font-size:18px; color:#2c5b8a; opacity:0; transition:opacity .4s; z-index:6; }
+  .hint.show{ opacity:1; }
+
+  /* 順番ボード（縦・左） */
+  .board{ position:absolute; left:3%; top:11%; bottom:auto; display:flex; flex-direction:column; gap:5px;
+    background:rgba(255,250,238,.9); border:3px solid #c8a064; border-radius:14px; padding:7px; opacity:0;
+    transition:opacity .4s; z-index:18; }
+  .board.show{ opacity:1; }
+  .slot{ width:62px; height:62px; border-radius:50%; background:#fff; border:3px solid #e7cf98; position:relative;
+    display:flex; align-items:center; justify-content:center; }
+  .slot .no{ font-size:24px; color:#c08a30; }
+  .slot img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:50%; opacity:0; transform:scale(.4); transition:opacity .3s,transform .35s cubic-bezier(.3,1.4,.5,1); }
+  .slot img.on{ opacity:1; transform:scale(1); }
+
+  /* キーワード（上端・小さめ＝顔とかぶらない） */
+  .kw{ position:absolute; left:50%; top:0.5%; transform:translate(-50%,0) scale(.3); opacity:0;
+    transition:opacity .2s, transform .3s cubic-bezier(.3,1.4,.5,1); z-index:40; }
+  .kw .giza{ width:200px; }
+  .kw .kwtext{ position:absolute; left:50%; top:45%; transform:translate(-50%,-50%); font-size:25px; color:#e2603b; white-space:nowrap; }
+  .kw.on{ opacity:1; transform:translate(-50%,0) scale(1); }
+
+  /* 紙吹雪 */
+  .cc{ position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:25; }
+  .cc i{ position:absolute; top:-12px; width:10px; height:14px; border-radius:2px; animation:fall linear forwards; }
+  @keyframes fall{ to{ transform:translateY(130%) rotate(540deg); } }
+
+  .panel{ margin-top:16px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+  button{ font-family:inherit; font-size:17px; cursor:pointer; border:none; border-radius:14px; padding:13px 20px;
+    color:#fff; background:#2E9E4F; box-shadow:0 4px 0 #1f7a37; transition:transform .05s; }
+  button:active{ transform:translateY(2px); box-shadow:0 2px 0 #1f7a37; }
+  button.sub{ background:#5a7da0; box-shadow:0 4px 0 #41607e; }
+  button.gold{ background:#e8902e; box-shadow:0 4px 0 #b96f18; }
+  button.big{ font-size:20px; padding:15px 28px; }
+  button:disabled{ background:#c2ccd6; box-shadow:0 4px 0 #aab6c2; cursor:default; }
+  .dots{ margin-top:12px; text-align:center; }
+  .dots span{ display:inline-block; width:13px; height:13px; border-radius:50%; background:#cdd8e2; margin:0 5px; }
+  .dots span.on{ background:#2E9E4F; transform:scale(1.3); }
+
+  /* 全画面：16:9のままレターボックス＋操作ボタンを下に残す（切れ防止） */
+  .wrap:fullscreen, .wrap:-webkit-full-screen{ width:100vw; height:100vh; background:#10241a; padding:0;
+    display:flex; flex-direction:column; justify-content:center; max-width:none; }
+  .wrap:fullscreen .scenelabel, .wrap:-webkit-full-screen .scenelabel{ color:#d7eed3; margin:6px 0; flex:0 0 auto; }
+  .wrap:fullscreen .stage, .wrap:-webkit-full-screen .stage{ flex:1 1 auto; width:auto; height:auto;
+    max-width:100vw; max-height:calc(100vh - 130px); margin:0 auto; border-radius:0; }
+  .wrap:fullscreen .dots, .wrap:-webkit-full-screen .dots{ margin:6px 0; flex:0 0 auto; }
+  .wrap:fullscreen .panel, .wrap:-webkit-full-screen .panel{ margin:6px 0 10px; flex:0 0 auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="scenelabel" id="scenelabel">スイカわりを しよう</div>
+  <div class="stage" id="stage" data-scene="0">
+    <img class="bg" src="img/haikei_suika.png" alt="">
+    <div class="cc" id="cc"></div>
+
+    <!-- タイトル -->
+    <img class="layer kanban" id="kanban" src="img/e1_kanban.png">
+    <div class="titletext" id="titletext">スイカわりを しよう</div>
+    <div class="hint" id="hint">▶ ぜんぶ さいせい で はじめるよ</div>
+
+    <!-- 順番ボード -->
+    <div class="board" id="board">
+      <div class="slot"><span class="no">1</span><img id="slot0" src="img/h1_face_ki.png"></div>
+      <div class="slot"><span class="no">2</span><img id="slot1" src="img/h2_face_ao.png"></div>
+      <div class="slot"><span class="no">3</span><img id="slot2" src="img/h3_face_midori.png"></div>
+      <div class="slot"><span class="no">4</span><img id="slot3" src="img/h4_face_pink.png"></div>
+      <div class="slot"><span class="no">5</span><img id="slot4" src="img/h5_face_orange.png"></div>
+    </div>
+
+    <!-- 先生 -->
+    <img class="layer" id="sensei" src="img/f6_sensei.png" style="left:25%;height:46%;transform:translateX(-50%)">
+
+    <!-- 5人 立ち -->
+    <img class="layer" id="st0" src="img/f1_ki_tatsu.png"     style="left:42%;height:40%;transform:translateX(-50%)">
+    <img class="layer" id="st1" src="img/f2_ao_tatsu.png"     style="left:54%;height:40%;transform:translateX(-50%)">
+    <img class="layer" id="st2" src="img/f3_midori_tatsu.png" style="left:66%;height:40%;transform:translateX(-50%)">
+    <img class="layer" id="st3" src="img/f4_pink_tatsu.png"   style="left:78%;height:40%;transform:translateX(-50%)">
+    <img class="layer" id="st4" src="img/f5_orange_tatsu.png" style="left:90%;height:40%;transform:translateX(-50%)">
+    <!-- 5人 はーい -->
+    <img class="layer" id="rs0" src="img/g1_ki_hai.png"     style="left:42%;height:44%;transform:translateX(-50%)">
+    <img class="layer" id="rs1" src="img/g2_ao_hai.png"     style="left:54%;height:44%;transform:translateX(-50%)">
+    <img class="layer" id="rs2" src="img/g3_midori_hai.png" style="left:66%;height:44%;transform:translateX(-50%)">
+    <img class="layer" id="rs3" src="img/g4_pink_hai.png"   style="left:78%;height:44%;transform:translateX(-50%)">
+    <img class="layer" id="rs4" src="img/g5_orange_hai.png" style="left:90%;height:44%;transform:translateX(-50%)">
+
+    <!-- 棒えらび（縦・持ち手を下・左から白青赤） -->
+    <img class="layer" id="bou_shiro" src="img/h7_bou_shiro.png" style="left:34%;bottom:22%;width:13%;transform:translateX(-50%) rotate(90deg)">
+    <img class="layer" id="bou_ao"    src="img/h6_bou_ao.png"    style="left:52%;bottom:22%;width:13%;transform:translateX(-50%) rotate(90deg)">
+    <img class="layer" id="bou_aka"   src="img/h8_bou_aka.png"   style="left:70%;bottom:22%;width:13%;transform:translateX(-50%) rotate(90deg)">
+    <img class="layer" id="chooser"   src="img/f1_ki_tatsu.png"  style="left:16%;height:46%;transform:translateX(-50%)">
+
+    <!-- Aくん スイカ割り -->
+    <img class="layer" id="sw1" src="img/sw1.png" style="left:38%;height:52%;transform:translateX(-50%)">
+    <img class="layer" id="sw2" src="img/sw2.png" style="left:38%;height:52%;transform:translateX(-50%)">
+    <img class="layer" id="sw3" src="img/sw3.png" style="left:38%;height:51%;transform:translateX(-50%)">
+    <img class="layer" id="sw4" src="img/sw4.png" style="left:38%;height:63%;transform:translateX(-50%)">
+    <img class="layer" id="sw5" src="img/sw5.png" style="left:38%;height:63%;transform:translateX(-50%)">
+    <img class="layer" id="sw6" src="img/sw6.png" style="left:38%;height:64%;transform:translateX(-50%)">
+    <img class="layer" id="sw7" src="img/sw7.png" style="left:39%;height:47%;transform:translateX(-50%)">
+    <img class="layer" id="sw8" src="img/sw8.png" style="left:40%;height:47%;transform:translateX(-50%)">
+    <img class="layer" id="sw9" src="img/sw9.png" style="left:41%;height:46%;transform:translateX(-50%)">
+    <img class="layer" id="melon"  src="img/07_suika_maru.png"   style="left:62%;height:18%;transform:translateX(-50%)">
+    <img class="layer" id="half_l" src="img/08_suika_hidari.png" style="left:60%;height:14%;transform:translateX(-50%)">
+    <img class="layer" id="half_r" src="img/09_suika_migi.png"   style="left:64%;height:14%;transform:translateX(-50%)">
+
+    <!-- お祝い（場面5は はーいの子=応援に流用） -->
+    <img class="layer" id="cb0" src="img/g1_ki_hai.png"     style="left:16%;height:42%;transform:translateX(-50%)">
+    <img class="layer" id="cb1" src="img/g2_ao_hai.png"     style="left:34%;height:42%;transform:translateX(-50%)">
+    <img class="layer" id="cb2" src="img/g3_midori_hai.png" style="left:52%;height:42%;transform:translateX(-50%)">
+    <img class="layer" id="cb3" src="img/g4_pink_hai.png"   style="left:70%;height:42%;transform:translateX(-50%)">
+    <img class="layer" id="cb4" src="img/g5_orange_hai.png" style="left:88%;height:42%;transform:translateX(-50%)">
+
+    <!-- 装飾 -->
+    <img class="layer" id="cracker" src="img/e5_cracker.png" style="left:62%;bottom:34%;height:26%;transform:translateX(-50%) scale(.4)">
+    <img class="layer" id="balloon" src="img/e9_balloon.png" style="left:88%;bottom:auto;top:5%;height:28%">
+    <img class="layer" id="hanamaru" src="img/e8_hanamaru.png" style="left:14%;bottom:auto;top:6%;height:20%">
+
+    <div class="kw" id="kw"><img class="giza" src="img/e4_fukidashi_giza.png"><div class="kwtext" id="kwtext"></div></div>
+  </div>
+
+  <div class="dots" id="dots"></div>
+  <div class="panel">
+    <button class="gold big" id="playall">▶ ぜんぶ さいせい</button>
+    <button class="sub" id="prev">◀ まえ</button>
+    <button id="play">このばめん</button>
+    <button class="sub" id="next">つぎ ▶</button>
+    <button class="sub" id="replay">↺ さいしょから</button>
+    <button class="sub" id="stopbgm">♪ おんがく とめる</button>
+    <button class="sub" id="fs">⛶ ぜんがめん</button>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const stage=$('stage'), label=$('scenelabel'), kw=$('kw'), kwtext=$('kwtext'), cc=$('cc');
+
+const SCENES=[
+  { title:"スイカわりを しよう", show:["kanban","titletext","hint","balloon"], type:"title" },
+  { title:"じゅんばんを きめる", show:["board","sensei","st0","st1","st2","st3","st4"], type:"junban" },
+  { title:"ぼうを えらぶ", show:["chooser","bou_ao","bou_shiro","bou_aka"], type:"bou" },
+  { title:"えいっ！ パカーン！", show:["sw1","melon"], type:"swing" },
+  { title:"みんなで よろこぶ", show:["cb0","cb1","cb2","cb3","cb4","balloon","hanamaru"], type:"celebrate" },
+];
+
+let cur=0, busy=false, cancel=false, bgmMuted=false;
+const audioEl=new Audio();
+const bgm=new Audio("bgm.mp3"); bgm.loop=true; bgm.volume=0.16;
+const allLayers=["kanban","titletext","hint","sensei","st0","st1","st2","st3","st4",
+  "rs0","rs1","rs2","rs3","rs4","bou_ao","bou_shiro","bou_aka","chooser",
+  "sw1","sw2","sw3","sw4","sw5","sw6","sw7","sw8","sw9","melon","half_l","half_r",
+  "cb0","cb1","cb2","cb3","cb4","cracker","balloon","hanamaru"];
+function showFrame(n){ for(let i=1;i<=9;i++) $('sw'+i).classList.remove('show'); $('sw'+n).classList.add('show'); }
+
+SCENES.forEach(()=>{const s=document.createElement('span');$('dots').appendChild(s);});
+const dots=document.querySelectorAll('#dots span');
+
+function startBgm(){ if(!bgmMuted && bgm.paused){ bgm.volume=0.16; bgm.play().catch(()=>{}); } }
+function fadeOutBgm(){ const step=()=>{ if(bgm.volume>0.02){ bgm.volume=Math.max(0,bgm.volume-0.02); setTimeout(step,70);} else { bgm.pause(); bgm.currentTime=0; bgm.volume=0.16; } }; step(); }
+function clearAll(){ allLayers.forEach(id=>$(id).classList.remove('show')); $('board').classList.remove('show'); kw.classList.remove('on');
+  for(let i=0;i<5;i++) $('slot'+i).classList.remove('on'); }
+function resetPos(){
+  $('half_l').style.left="60%"; $('half_r').style.left="64%";
+  $('cracker').style.transform="translateX(-50%) scale(.4)";
+  ["bou_ao","bou_shiro","bou_aka"].forEach(b=>{$(b).style.opacity=""; $(b).style.transform="translateX(-50%) rotate(90deg)";});
+}
+function setScene(n){
+  cur=Math.max(0,Math.min(SCENES.length-1,n)); const s=SCENES[cur];
+  stage.dataset.scene=cur; label.textContent=s.title;
+  clearAll(); resetPos();
+  (s.show||[]).forEach(id=>{ if(id==="board") $('board').classList.add('show'); else $(id).classList.add('show'); });
+  dots.forEach((d,i)=>d.classList.toggle('on',i<=cur));
+  $('prev').disabled=(cur===0); $('next').disabled=(cur===SCENES.length-1);
+}
+function stopAudio(){ cancel=true; audioEl.pause(); }
+function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function playWav(name){ return new Promise(res=>{ audioEl.src="se2/"+name+".wav"; audioEl.onended=res; audioEl.onerror=res; audioEl.play().catch(()=>res()); }); }
+function popKW(t){ kwtext.textContent=t; kw.classList.add('on'); }
+function rain(n){ const c=["#ff6b7a","#ffd75e","#5fb85f","#5aa8e0","#c178e0","#ff9f4a"];
+  for(let i=0;i<n;i++){ const e=document.createElement('i'); e.style.left=Math.random()*100+"%"; e.style.background=c[i%c.length];
+    e.style.animationDuration=(1.6+Math.random()*1.4)+"s"; e.style.animationDelay=(Math.random()*.5)+"s"; cc.appendChild(e); setTimeout(()=>e.remove(),3600);} }
+
+// セリフ＋間（特支授業向け：一文ごとに少し待つ）
+async function say(name, gap){ await playWav(name); if(cancel)return; await wait(gap===undefined?650:gap); }
+
+async function choreo(){
+  const s=SCENES[cur];
+  if(s.type==="title"){ await wait(1100); return; }
+
+  if(s.type==="junban"){
+    await say("s01",750); if(cancel)return;
+    await say("s02",850); if(cancel)return;
+    const ask=["s03","s05","s07","s09","s11"], hai=["s04","s06","s08","s10","s12"];
+    for(let i=0;i<5;i++){
+      await playWav(ask[i]); if(cancel)return;
+      await wait(950);                                                       // 先生が聞いてから答えるまでの間
+      $('st'+i).classList.remove('show'); $('rs'+i).classList.add('show');   // 立ち→はーい
+      $('slot'+i).classList.add('on'); await wait(250);                      // 顔がスロットへ
+      await playWav(hai[i]); if(cancel)return; await wait(750);              // 次の問いかけまで間
+    }
+    await wait(200); await playWav("s13"); return;
+  }
+
+  if(s.type==="bou"){
+    await playWav("s14"); if(cancel)return; await wait(950);   // どれにしようか考える間
+    $('bou_shiro').style.opacity=".25"; $('bou_aka').style.opacity=".25";
+    $('bou_ao').style.transform="translateX(-50%) rotate(90deg) scale(1.3)"; await wait(350);
+    await say("s15",750); if(cancel)return;        // あおいぼうにする
+    await playWav("s16"); return;                  // いいね
+  }
+
+  if(s.type==="swing"){
+    clearAll(); $('melon').classList.add('show'); showFrame(1);
+    await say("s17",800); if(cancel)return;                 // よーい…（ため）
+    await say("s18",600); if(cancel)return;                 // がんばれー
+    showFrame(5); await wait(800); if(cancel)return;        // 振り上げ
+    showFrame(9);                                            // 振り下ろし
+    await playWav("s19"); if(cancel)return; await wait(180); // えいっ
+    $('melon').classList.remove('show'); $('half_l').classList.add('show'); $('half_r').classList.add('show');
+    $('half_l').style.left="57%"; $('half_r').style.left="69%";
+    $('cracker').classList.add('show'); $('cracker').style.transform="translateX(-50%) scale(1.1)";
+    rain(60); popKW("パカーン！");
+    await say("s20",600); if(cancel)return;                 // パカーン
+    await playWav("s21"); return;                           // われたー
+  }
+
+  if(s.type==="celebrate"){
+    popKW("やったー！");
+    await playWav("s22"); if(cancel)return; rain(40); await wait(650);
+    await playWav("s23"); if(cancel)return; rain(40); await wait(650);
+    await playWav("s24"); return;                           // みんなでたべよー
+  }
+}
+
+async function playOne(){ if(busy)return; busy=true; cancel=false; startBgm(); setBtns(true); await choreo(); if(!cancel) fadeOutBgm(); busy=false; setBtns(false); }
+async function playAll(){
+  if(busy)return; busy=true; cancel=false; startBgm(); setBtns(true);
+  for(let i=0;i<SCENES.length;i++){ if(cancel)break; setScene(i); await wait(500); if(cancel)break; await choreo(); if(cancel)break; await wait(1000); }
+  if(!cancel) fadeOutBgm();
+  busy=false; setBtns(false);
+}
+function setBtns(on){ $('playall').textContent=on?"さいせい中…":"▶ ぜんぶ さいせい"; $('playall').disabled=on; $('play').disabled=on; }
+
+$('playall').onclick=()=>playAll();
+$('play').onclick=()=>playOne();
+$('next').onclick=()=>{ stopAudio(); busy=false; setBtns(false); setScene(cur+1); };
+$('prev').onclick=()=>{ stopAudio(); busy=false; setBtns(false); setScene(cur-1); };
+$('replay').onclick=()=>{ stopAudio(); busy=false; setBtns(false); setScene(0); };
+$('fs').onclick=()=>{ const w=document.querySelector('.wrap'); if(!document.fullscreenElement){ (w.requestFullscreen||w.webkitRequestFullscreen)?.call(w); } else { document.exitFullscreen?.(); } };
+$('stopbgm').onclick=()=>{ bgmMuted=!bgmMuted;
+  if(bgmMuted){ bgm.pause(); $('stopbgm').textContent="♪ おんがく つける"; }
+  else { bgm.volume=0.16; bgm.play().catch(()=>{}); $('stopbgm').textContent="♪ おんがく とめる"; } };
+
+setScene(0);
+</script>
+</body>
+</html>
