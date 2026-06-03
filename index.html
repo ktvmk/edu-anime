@@ -11,55 +11,136 @@
   html,body{ margin:0; padding:0; min-height:100%; }
   body{
     font-family:"PopJP","Hiragino Maru Gothic ProN","Yu Gothic UI",sans-serif;
-    background:linear-gradient(160deg,#fff7e6 0%,#ffe9ef 50%,#e6f6ff 100%);
-    color:#333; text-align:center;
+    background:linear-gradient(160deg,#fff7e6 0%,#ffe9ef 45%,#e6f6ff 100%);
+    color:#444; text-align:center; overflow-x:hidden;
     display:flex; flex-direction:column; align-items:center;
-    padding:6vh 4vw 8vh;
+    padding:5vh 4vw 0;
   }
-  h1{ font-size:clamp(28px,7vw,52px); color:#e8702a; margin:0 0 8px; letter-spacing:2px; }
-  .sub{ font-size:clamp(14px,3.4vw,20px); color:#6b6b6b; margin:0 0 6vh; }
+
+  /* ---- header ---- */
+  .head{ position:relative; }
+  h1{ font-size:clamp(30px,7vw,56px); color:#e8702a; margin:0 0 6px; letter-spacing:2px;
+       text-shadow:0 3px 0 #ffd9a0; }
+  .sub{ font-size:clamp(14px,3.4vw,21px); color:#7a7a7a; margin:0 0 5vh; }
+  .hanamaru{ position:absolute; width:54px; height:auto; top:-6px; }
+  .hanamaru.l{ left:-66px; transform:rotate(-12deg); }
+  .hanamaru.r{ right:-66px; transform:rotate(12deg); }
+
+  /* ---- cards ---- */
   .grid{
-    display:grid; gap:clamp(18px,4vw,34px);
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    width:100%; max-width:920px;
+    display:grid; gap:clamp(20px,3.5vw,40px);
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    width:100%; max-width:1180px;
   }
   a.card{
-    display:block; text-decoration:none; color:#333;
-    background:#fff; border-radius:28px; padding:18px 16px 22px;
-    box-shadow:0 8px 22px rgba(0,0,0,.10);
-    border:4px solid #fff; transition:transform .12s ease, box-shadow .12s ease;
+    display:block; text-decoration:none; color:#444;
+    background:#fff; border-radius:32px; padding:16px 16px 24px;
+    box-shadow:0 10px 26px rgba(0,0,0,.12);
+    border:5px solid #fff; transition:transform .12s ease, box-shadow .12s ease;
   }
-  a.card:active{ transform:scale(.97); }
-  a.card:hover{ transform:translateY(-4px); box-shadow:0 14px 30px rgba(0,0,0,.16); }
+  a.card:active{ transform:scale(.98); }
+  a.card:hover{ transform:translateY(-5px); box-shadow:0 18px 36px rgba(0,0,0,.18); }
   .thumb{
-    width:100%; aspect-ratio:4/3; border-radius:20px; overflow:hidden;
-    display:flex; align-items:center; justify-content:center; margin-bottom:12px;
+    position:relative; width:100%; aspect-ratio:4/3; border-radius:22px; overflow:hidden;
+    margin-bottom:14px;
   }
-  .thumb img{ width:100%; height:100%; object-fit:cover; }
-  .name{ font-size:clamp(20px,4.6vw,28px); }
-  .c1 .thumb{ background:#ffe7b3; } .c1{ border-color:#ffcf66; }
-  .c2 .thumb{ background:#cdeafc; } .c2{ border-color:#7fc4f5; }
-  .c3 .thumb{ background:#d8f3df; } .c3{ border-color:#86d79a; }
-  .foot{ margin-top:7vh; font-size:13px; color:#9a9a9a; line-height:1.7; }
+  .thumb .bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .thumb .prop{ position:absolute; filter:drop-shadow(0 4px 6px rgba(0,0,0,.22)); }
+  .name{ font-size:clamp(22px,4.4vw,30px); }
+
+  .c1{ border-color:#ffcf66; } .c1 .name{ color:#e8702a; }
+  .c2{ border-color:#7fc4f5; } .c2 .name{ color:#1f7fc4; }
+  .c3{ border-color:#86d79a; } .c3 .name{ color:#2e9e4f; }
+
+  /* watermelon scene props */
+  .p-bou-r{ bottom:15%; left:9%;  width:48%; transform:rotate(-20deg); z-index:1; }
+  .p-bou-b{ bottom:13%; right:9%; width:48%; transform:rotate(20deg);  z-index:1; }
+  .p-suika{ bottom:7%;  left:50%; width:35%; transform:translateX(-50%); z-index:2; }
+  /* traffic light */
+  .p-shingo{ bottom:5%; left:50%; height:86%; transform:translateX(-50%); z-index:2; }
+  /* seesaw */
+  .p-seesaw{ bottom:20%; left:50%; width:84%; transform:translateX(-50%); z-index:2; }
+
+  /* ---- bottom scene (sensei + 5 kids) ---- */
+  .scene{
+    position:relative; width:100%; max-width:1180px; margin:7vh auto 0;
+    padding-top:30px; border-radius:40px 40px 0 0; overflow:hidden;
+    background:linear-gradient(180deg,#cdeeff 0%,#e8f8ff 55%,#bfe9a6 55%,#a9df8c 100%);
+  }
+  .sun{ position:absolute; top:24px; right:48px; width:74px; height:74px; border-radius:50%;
+        background:radial-gradient(circle at 50% 50%,#fff3a8,#ffd23e 70%);
+        box-shadow:0 0 30px 8px rgba(255,210,62,.55); }
+  .cloud{ position:absolute; background:#fff; border-radius:50%; opacity:.92;
+          box-shadow:34px 6px 0 6px #fff, 70px 0 0 -4px #fff, -30px 8px 0 0 #fff; }
+  .cl1{ width:46px; height:46px; top:40px; left:60px; }
+  .cl2{ width:34px; height:34px; top:74px; left:230px; }
+  .balloon{ position:absolute; height:96px; width:auto; z-index:3;
+            filter:drop-shadow(0 5px 6px rgba(0,0,0,.18)); }
+  .bl1{ top:18px; left:18px; transform:rotate(-8deg); }
+  .bl2{ top:10px; right:120px; transform:rotate(7deg); }
+
+  .row{ position:relative; z-index:4; display:flex; align-items:flex-end;
+        justify-content:center; gap:clamp(4px,1.6vw,26px);
+        flex-wrap:wrap; padding:0 16px 8px; }
+  .row img{ height:clamp(118px,17vw,186px); width:auto;
+            filter:drop-shadow(0 6px 5px rgba(0,0,0,.20)); }
+  .row img.sensei{ height:clamp(128px,18.5vw,202px); }
+
+  .foot{ width:100%; max-width:1180px; background:#a9df8c;
+         padding:14px 10px 18px; font-size:13px; color:#3f6b30; line-height:1.7; }
 </style>
 </head>
 <body>
-  <h1>きょうざい あにめ</h1>
-  <p class="sub">えらんで ボタンを おしてね</p>
+  <div class="head">
+    <img class="hanamaru l" src="suika/img/e8_hanamaru.png" alt="">
+    <img class="hanamaru r" src="suika/img/e8_hanamaru.png" alt="">
+    <h1>きょうざい あにめ</h1>
+    <p class="sub">えらんで ボタンを おしてね</p>
+  </div>
+
   <div class="grid">
     <a class="card c1" href="suika/">
-      <div class="thumb"><img src="suika/img/haikei_suika.png" alt="スイカわり"></div>
-      <div class="name">スイカわり</div>
+      <div class="thumb">
+        <img class="bg" src="suika/img/haikei_suika.png" alt="">
+        <img class="prop p-bou-r" src="suika/img/h8_bou_aka.png" alt="">
+        <img class="prop p-bou-b" src="suika/img/h6_bou_ao.png" alt="">
+        <img class="prop p-suika" src="suika/img/07_suika_maru.png" alt="">
+      </div>
+      <div class="name">スイカわりを しよう</div>
     </a>
+
     <a class="card c2" href="shingo/">
-      <div class="thumb"><img src="shingo/img/haikei_shingo4.png" alt="しんごう"></div>
-      <div class="name">しんごう</div>
+      <div class="thumb">
+        <img class="bg" src="shingo/img/haikei_shingo4.png" alt="">
+        <img class="prop p-shingo" src="shingo/img/c1_shingo_aka.png" alt="">
+      </div>
+      <div class="name">しんごうを わたろう</div>
     </a>
+
     <a class="card c3" href="seesaw/">
-      <div class="thumb"><img src="seesaw/img/haikei_seesaw.png" alt="シーソー"></div>
-      <div class="name">シーソー</div>
+      <div class="thumb">
+        <img class="bg" src="seesaw/img/haikei_seesaw.png" alt="">
+        <img class="prop p-seesaw" src="seesaw/img/b1_seesaw.png" alt="">
+      </div>
+      <div class="name">シーソーで あそぼう</div>
     </a>
   </div>
-  <p class="foot">藤田真生 先生 用 ／ HTML教材アニメ<br>うごかないときは、もういちど ページを よみこんでね</p>
+
+  <div class="scene">
+    <div class="sun"></div>
+    <div class="cloud cl1"></div>
+    <div class="cloud cl2"></div>
+    <img class="balloon bl1" src="suika/img/e9_balloon.png" alt="">
+    <img class="balloon bl2" src="suika/img/e9_balloon.png" alt="">
+    <div class="row">
+      <img class="sensei" src="suika/img/f6_sensei.png" alt="せんせい">
+      <img src="suika/img/f1_ki_tatsu.png" alt="">
+      <img src="suika/img/f2_ao_tatsu.png" alt="">
+      <img src="suika/img/f3_midori_tatsu.png" alt="">
+      <img src="suika/img/f4_pink_tatsu.png" alt="">
+      <img src="suika/img/f5_orange_tatsu.png" alt="">
+    </div>
+  </div>
+  <p class="foot">藤田真生 先生 用 ／ HTML教材アニメ　　うごかないときは、もういちど ページを よみこんでね</p>
 </body>
 </html>
