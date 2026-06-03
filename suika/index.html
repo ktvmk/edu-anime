@@ -10,11 +10,11 @@
   *{ margin:0; padding:0; box-sizing:border-box; }
   html,body{ background:#fff !important; color:#1a2a3a !important; font-family:"PopJP","Hiragino Maru Gothic ProN",sans-serif; }
   @media (prefers-color-scheme:dark){ html,body{background:#fff!important;color:#1a2a3a!important;} }
-  .wrap{ max-width:min(98vw, calc((100vh - 150px) * 16 / 9)); margin:0 auto; padding:8px 10px 18px; }
-  .scenelabel{ text-align:center; font-size:23px; color:#1f7a37; margin-bottom:6px; min-height:28px; }
+  .wrap{ max-width:min(98vw, calc((100vh - 150px) * 16 / 9)); margin:0 auto; padding:8px 10px 18px; container-type:inline-size; }
+  .scenelabel{ text-align:center; font-size:2.04cqw; color:#1f7a37; margin-bottom:6px; min-height:2.5cqw; }
 
   .stage{ position:relative; width:100%; aspect-ratio:16/9; border-radius:18px; overflow:hidden;
-    box-shadow:0 8px 28px rgba(0,0,0,.16); background:#bfe6f5; }
+    box-shadow:0 8px 28px rgba(0,0,0,.16); background:#bfe6f5; container-type:inline-size; }
   .stage img.bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
   .layer{ position:absolute; bottom:8%; opacity:0; transition:opacity .3s ease, transform .45s ease;
     filter:drop-shadow(0 4px 4px rgba(0,0,0,.18)); pointer-events:none; }
@@ -23,9 +23,9 @@
   /* タイトル */
   .kanban{ left:50%; top:24%; bottom:auto; transform:translateX(-50%); width:58%; }
   .titletext{ position:absolute; left:50%; top:52%; transform:translate(-50%,-50%) scale(.6);
-    font-size:46px; color:#3a7d2c; opacity:0; transition:opacity .4s,transform .4s; white-space:nowrap; text-shadow:2px 2px 0 #fff; z-index:6; }
+    font-size:4.14cqw; color:#3a7d2c; opacity:0; transition:opacity .4s,transform .4s; white-space:nowrap; text-shadow:2px 2px 0 #fff; z-index:6; }
   .titletext.show{ opacity:1; transform:translate(-50%,-50%) scale(1); }
-  .hint{ position:absolute; left:50%; top:74%; transform:translateX(-50%); font-size:18px; color:#2c5b8a; opacity:0; transition:opacity .4s; z-index:6; }
+  .hint{ position:absolute; left:50%; top:74%; transform:translateX(-50%); font-size:1.62cqw; color:#2c5b8a; opacity:0; transition:opacity .4s; z-index:6; }
   .hint.show{ opacity:1; }
 
   /* 順番ボード（縦・左） */
@@ -33,17 +33,17 @@
     background:rgba(255,250,238,.9); border:3px solid #c8a064; border-radius:14px; padding:7px; opacity:0;
     transition:opacity .4s; z-index:18; }
   .board.show{ opacity:1; }
-  .slot{ width:62px; height:62px; border-radius:50%; background:#fff; border:3px solid #e7cf98; position:relative;
+  .slot{ width:5.59cqw; height:5.59cqw; border-radius:50%; background:#fff; border:3px solid #e7cf98; position:relative;
     display:flex; align-items:center; justify-content:center; }
-  .slot .no{ font-size:24px; color:#c08a30; }
+  .slot .no{ font-size:2.16cqw; color:#c08a30; }
   .slot img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:50%; opacity:0; transform:scale(.4); transition:opacity .3s,transform .35s cubic-bezier(.3,1.4,.5,1); }
   .slot img.on{ opacity:1; transform:scale(1); }
 
   /* キーワード（上端・小さめ＝顔とかぶらない） */
   .kw{ position:absolute; left:50%; top:0.5%; transform:translate(-50%,0) scale(.3); opacity:0;
     transition:opacity .2s, transform .3s cubic-bezier(.3,1.4,.5,1); z-index:40; }
-  .kw .giza{ width:200px; }
-  .kw .kwtext{ position:absolute; left:50%; top:45%; transform:translate(-50%,-50%); font-size:25px; color:#e2603b; white-space:nowrap; }
+  .kw .giza{ width:18cqw; }
+  .kw .kwtext{ position:absolute; left:50%; top:45%; transform:translate(-50%,-50%); font-size:2.25cqw; color:#e2603b; white-space:nowrap; }
   .kw.on{ opacity:1; transform:translate(-50%,0) scale(1); }
 
   /* 紙吹雪 */
@@ -51,26 +51,30 @@
   .cc i{ position:absolute; top:-12px; width:10px; height:14px; border-radius:2px; animation:fall linear forwards; }
   @keyframes fall{ to{ transform:translateY(130%) rotate(540deg); } }
 
-  .panel{ margin-top:16px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
-  button{ font-family:inherit; font-size:17px; cursor:pointer; border:none; border-radius:14px; padding:13px 20px;
-    color:#fff; background:#2E9E4F; box-shadow:0 4px 0 #1f7a37; transition:transform .05s; }
+  /* 操作パネル：均等グリッドで統一感（モバイルも整列） */
+  .panel{ margin:16px auto 0; display:grid; gap:10px; max-width:760px;
+    grid-template-columns:repeat(auto-fit,minmax(132px,1fr)); }
+  button{ font-family:inherit; font-size:17px; cursor:pointer; border:none; border-radius:14px; padding:13px 8px;
+    color:#fff; background:#2E9E4F; box-shadow:0 4px 0 #1f7a37; transition:transform .05s; width:100%; white-space:nowrap; }
   button:active{ transform:translateY(2px); box-shadow:0 2px 0 #1f7a37; }
   button.sub{ background:#5a7da0; box-shadow:0 4px 0 #41607e; }
   button.gold{ background:#e8902e; box-shadow:0 4px 0 #b96f18; }
-  button.big{ font-size:20px; padding:15px 28px; }
+  button.big{ font-size:19px; padding:15px 8px; }
+  #playall{ grid-column:1 / -1; }
   button:disabled{ background:#c2ccd6; box-shadow:0 4px 0 #aab6c2; cursor:default; }
   .dots{ margin-top:12px; text-align:center; }
-  .dots span{ display:inline-block; width:13px; height:13px; border-radius:50%; background:#cdd8e2; margin:0 5px; }
+  .dots span{ display:inline-block; width:1.15cqw; height:1.15cqw; min-width:9px; min-height:9px; border-radius:50%; background:#cdd8e2; margin:0 5px; }
   .dots span.on{ background:#2E9E4F; transform:scale(1.3); }
 
-  /* 全画面：16:9のままレターボックス＋操作ボタンを下に残す（切れ防止） */
-  .wrap:fullscreen, .wrap:-webkit-full-screen{ width:100vw; height:100vh; background:#10241a; padding:0;
+  /* 全画面：ネイティブ＋擬似全画面(.pfs / モバイル用)共通。16:9レターボックス＋操作ボタンを下に残す */
+  .wrap:fullscreen, .wrap:-webkit-full-screen, .wrap.pfs{ width:100vw; height:100vh; background:#10241a; padding:0;
     display:flex; flex-direction:column; justify-content:center; max-width:none; }
-  .wrap:fullscreen .scenelabel, .wrap:-webkit-full-screen .scenelabel{ color:#d7eed3; margin:6px 0; flex:0 0 auto; }
-  .wrap:fullscreen .stage, .wrap:-webkit-full-screen .stage{ flex:1 1 auto; width:auto; height:auto;
-    max-width:100vw; max-height:calc(100vh - 130px); margin:0 auto; border-radius:0; }
-  .wrap:fullscreen .dots, .wrap:-webkit-full-screen .dots{ margin:6px 0; flex:0 0 auto; }
-  .wrap:fullscreen .panel, .wrap:-webkit-full-screen .panel{ margin:6px 0 10px; flex:0 0 auto; }
+  .wrap.pfs{ position:fixed; inset:0; z-index:9990; overflow:auto; }
+  .wrap:fullscreen .scenelabel, .wrap:-webkit-full-screen .scenelabel, .wrap.pfs .scenelabel{ color:#d7eed3; margin:6px 0; flex:0 0 auto; }
+  .wrap:fullscreen .stage, .wrap:-webkit-full-screen .stage, .wrap.pfs .stage{ flex:1 1 auto; width:auto; height:auto;
+    max-width:100vw; max-height:calc(100vh - 150px); margin:0 auto; border-radius:0; }
+  .wrap:fullscreen .dots, .wrap:-webkit-full-screen .dots, .wrap.pfs .dots{ margin:6px 0; flex:0 0 auto; }
+  .wrap:fullscreen .panel, .wrap:-webkit-full-screen .panel, .wrap.pfs .panel{ margin:6px auto 8px; flex:0 0 auto; }
 </style>
 </head>
 <body>
@@ -149,6 +153,7 @@
   <div class="dots" id="dots"></div>
   <div class="panel">
     <button class="gold big" id="playall">▶ ぜんぶ さいせい</button>
+    <button class="sub" id="pause">⏸ ストップ</button>
     <button class="sub" id="prev">◀ まえ</button>
     <button id="play">このばめん</button>
     <button class="sub" id="next">つぎ ▶</button>
@@ -199,7 +204,7 @@ function setScene(n){
   dots.forEach((d,i)=>d.classList.toggle('on',i<=cur));
   $('prev').disabled=(cur===0); $('next').disabled=(cur===SCENES.length-1);
 }
-function stopAudio(){ cancel=true; audioEl.pause(); }
+function stopAudio(){ cancel=true; audioEl.pause(); bgm.pause(); }   // 音声も音楽も止める
 function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
 function playWav(name){ return new Promise(res=>{ audioEl.src="se2/"+name+".wav"; audioEl.onended=res; audioEl.onerror=res; audioEl.play().catch(()=>res()); }); }
 function popKW(t){ kwtext.textContent=t; kw.classList.add('on'); }
@@ -259,21 +264,33 @@ async function choreo(){
   }
 }
 
-async function playOne(){ if(busy)return; busy=true; cancel=false; startBgm(); setBtns(true); await choreo(); if(!cancel) fadeOutBgm(); busy=false; setBtns(false); }
-async function playAll(){
-  if(busy)return; busy=true; cancel=false; startBgm(); setBtns(true);
-  for(let i=0;i<SCENES.length;i++){ if(cancel)break; setScene(i); await wait(500); if(cancel)break; await choreo(); if(cancel)break; await wait(1000); }
+async function playOne(){ if(busy)return; busy=true; cancel=false; startBgm(); setBtns(true); $('pause').textContent="⏸ ストップ"; await choreo(); if(!cancel) fadeOutBgm(); busy=false; setBtns(false); $('pause').textContent="⏸ ストップ"; }
+async function playAll(start){
+  if(busy)return; busy=true; cancel=false; startBgm(); setBtns(true); $('pause').textContent="⏸ ストップ";
+  for(let i=(start||0);i<SCENES.length;i++){ if(cancel)break; setScene(i); await wait(500); if(cancel)break; await choreo(); if(cancel)break; await wait(1000); }
   if(!cancel) fadeOutBgm();
-  busy=false; setBtns(false);
+  busy=false; setBtns(false); $('pause').textContent="⏸ ストップ";
 }
 function setBtns(on){ $('playall').textContent=on?"さいせい中…":"▶ ぜんぶ さいせい"; $('playall').disabled=on; $('play').disabled=on; }
 
-$('playall').onclick=()=>playAll();
+$('playall').onclick=()=>playAll(0);
 $('play').onclick=()=>playOne();
-$('next').onclick=()=>{ stopAudio(); busy=false; setBtns(false); setScene(cur+1); };
-$('prev').onclick=()=>{ stopAudio(); busy=false; setBtns(false); setScene(cur-1); };
-$('replay').onclick=()=>{ stopAudio(); busy=false; setBtns(false); setScene(0); };
-$('fs').onclick=()=>{ const w=document.querySelector('.wrap'); if(!document.fullscreenElement){ (w.requestFullscreen||w.webkitRequestFullscreen)?.call(w); } else { document.exitFullscreen?.(); } };
+$('pause').onclick=()=>{
+  if(busy){ stopAudio(); busy=false; setBtns(false); $('pause').textContent="▶ つづき"; }   // 停止→「つづき」へ
+  else { playAll(cur); }                                                                       // つづき→今の場面から再生
+};
+$('next').onclick=()=>{ stopAudio(); busy=false; setBtns(false); $('pause').textContent="⏸ ストップ"; setScene(cur+1); };
+$('prev').onclick=()=>{ stopAudio(); busy=false; setBtns(false); $('pause').textContent="⏸ ストップ"; setScene(cur-1); };
+$('replay').onclick=()=>{ stopAudio(); busy=false; setBtns(false); $('pause').textContent="⏸ ストップ"; setScene(0); };
+$('fs').onclick=()=>{
+  const w=document.querySelector('.wrap');
+  const req=w.requestFullscreen||w.webkitRequestFullscreen;
+  if(document.fullscreenEnabled && req){
+    if(!document.fullscreenElement){ req.call(w); } else { document.exitFullscreen?.(); }
+  } else {
+    w.classList.toggle('pfs');   // iOS等 native全画面不可 → 擬似全画面
+  }
+};
 $('stopbgm').onclick=()=>{ bgmMuted=!bgmMuted;
   if(bgmMuted){ bgm.pause(); $('stopbgm').textContent="♪ おんがく つける"; }
   else { bgm.volume=0.16; bgm.play().catch(()=>{}); $('stopbgm').textContent="♪ おんがく とめる"; } };
