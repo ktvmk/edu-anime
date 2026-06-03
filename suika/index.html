@@ -66,15 +66,22 @@
   .dots span{ display:inline-block; width:1.15cqw; height:1.15cqw; min-width:9px; min-height:9px; border-radius:50%; background:#cdd8e2; margin:0 5px; }
   .dots span.on{ background:#2E9E4F; transform:scale(1.3); }
 
-  /* 全画面：ネイティブ＋擬似全画面(.pfs / モバイル用)共通。16:9レターボックス＋操作ボタンを下に残す */
-  .wrap:fullscreen, .wrap:-webkit-full-screen, .wrap.pfs{ width:100vw; height:100vh; background:#10241a; padding:0;
-    display:flex; flex-direction:column; justify-content:center; max-width:none; }
-  .wrap.pfs{ position:fixed; inset:0; z-index:9990; overflow:auto; }
-  .wrap:fullscreen .scenelabel, .wrap:-webkit-full-screen .scenelabel, .wrap.pfs .scenelabel{ color:#d7eed3; margin:6px 0; flex:0 0 auto; }
-  .wrap:fullscreen .stage, .wrap:-webkit-full-screen .stage, .wrap.pfs .stage{ flex:1 1 auto; width:auto; height:auto;
-    max-width:100vw; max-height:calc(100vh - 150px); margin:0 auto; border-radius:0; }
-  .wrap:fullscreen .dots, .wrap:-webkit-full-screen .dots, .wrap.pfs .dots{ margin:6px 0; flex:0 0 auto; }
-  .wrap:fullscreen .panel, .wrap:-webkit-full-screen .panel, .wrap.pfs .panel{ margin:6px auto 8px; flex:0 0 auto; }
+  /* スマホ：固定ホームボタンとアニメの重なり防止に上余白 */
+  @media (max-width:640px){ .wrap{ padding-top:48px; } }
+
+  /* 全画面（ネイティブ＋擬似.pfs）：ステージを最大16:9で中央配置、操作ボタンは小さく */
+  .wrap:fullscreen, .wrap:-webkit-full-screen, .wrap.pfs{ width:100vw; height:100vh; max-width:none; background:#10241a; padding:0; margin:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; overflow:hidden; }
+  .wrap.pfs{ position:fixed; inset:0; z-index:9990; }
+  .wrap.pfs .homebtn{ display:none; }
+  .wrap:fullscreen .scenelabel, .wrap:-webkit-full-screen .scenelabel, .wrap.pfs .scenelabel{ color:#d7eed3; margin:0; min-height:0; font-size:clamp(13px,3.6vw,22px); flex:0 0 auto; }
+  .wrap:fullscreen .stage, .wrap:-webkit-full-screen .stage, .wrap.pfs .stage{ flex:0 0 auto; margin:0; border-radius:0;
+    width:min(100vw, calc((100vh - 132px) * 16 / 9)); height:auto; aspect-ratio:16/9; }
+  .wrap:fullscreen .dots, .wrap:-webkit-full-screen .dots, .wrap.pfs .dots{ margin:0; flex:0 0 auto; }
+  .wrap:fullscreen .panel, .wrap:-webkit-full-screen .panel, .wrap.pfs .panel{ margin:0; flex:0 0 auto;
+    display:flex; flex-wrap:wrap; justify-content:center; gap:5px; max-width:98vw; }
+  .wrap:fullscreen .panel button, .wrap:-webkit-full-screen .panel button, .wrap.pfs .panel button{ width:auto; font-size:clamp(11px,2.6vw,15px); padding:7px 9px; box-shadow:0 3px 0 rgba(0,0,0,.35); }
+  .wrap:fullscreen .panel button.big, .wrap:-webkit-full-screen .panel button.big, .wrap.pfs .panel button.big{ font-size:clamp(12px,2.8vw,16px); padding:8px 11px; }
 
   /* 古いブラウザ(幅比例cqw非対応)向けの固定px予備 */
   @supports not (width:1cqw){
@@ -187,6 +194,14 @@ const SCENES=[
 let cur=0, busy=false, cancel=false, bgmMuted=false;
 const audioEl=new Audio();
 const bgm=new Audio("bgm.mp3"); bgm.loop=true; bgm.volume=0.16;
+// iOS等：最初のタップで音声プレーヤーを解錠（待ちの後の再生がブロックされる問題の対策）
+const _SILENT="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+let _audioUnlocked=false;
+function unlockAudio(){ if(_audioUnlocked)return; _audioUnlocked=true;
+  try{ audioEl.src=_SILENT; const p=audioEl.play(); if(p&&p.then) p.then(()=>{ audioEl.pause(); audioEl.currentTime=0; }).catch(()=>{}); }catch(e){}
+}
+document.addEventListener('touchend',unlockAudio,{once:true});
+document.addEventListener('mousedown',unlockAudio,{once:true});
 const allLayers=["kanban","titletext","hint","sensei","st0","st1","st2","st3","st4",
   "rs0","rs1","rs2","rs3","rs4","bou_ao","bou_shiro","bou_aka","chooser",
   "sw1","sw2","sw3","sw4","sw5","sw6","sw7","sw8","sw9","melon","half_l","half_r",
