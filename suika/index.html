@@ -70,18 +70,20 @@
   @media (max-width:640px){ .wrap{ padding-top:48px; } }
 
   /* 全画面（ネイティブ＋擬似.pfs）：ステージを最大16:9で中央配置、操作ボタンは小さく */
-  .wrap:fullscreen, .wrap:-webkit-full-screen, .wrap.pfs{ width:100vw; height:100vh; max-width:none; background:#10241a; padding:0; margin:0;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; overflow:hidden; }
+  /* iPad Safari はツールバー分だけ 100vh が実表示より大きく、上下が見切れる → 100dvh を使い、下部UIの確保枠も拡げる */
+  .wrap:fullscreen, .wrap:-webkit-full-screen, .wrap.pfs{ width:100vw; height:100vh; height:100dvh; max-width:none; background:#10241a; padding:6px 0; margin:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; overflow:hidden; }
   .wrap.pfs{ position:fixed; inset:0; z-index:9990; }
   .wrap.pfs .homebtn{ display:none; }
-  .wrap:fullscreen .scenelabel, .wrap:-webkit-full-screen .scenelabel, .wrap.pfs .scenelabel{ color:#d7eed3; margin:0; min-height:0; font-size:clamp(13px,3.6vw,22px); flex:0 0 auto; }
+  .wrap:fullscreen .scenelabel, .wrap:-webkit-full-screen .scenelabel, .wrap.pfs .scenelabel{ color:#d7eed3; margin:0; min-height:0; font-size:clamp(13px,3.4vw,20px); flex:0 0 auto; }
   .wrap:fullscreen .stage, .wrap:-webkit-full-screen .stage, .wrap.pfs .stage{ flex:0 0 auto; margin:0; border-radius:0;
-    width:min(100vw, calc((100vh - 132px) * 16 / 9)); height:auto; aspect-ratio:16/9; }
+    width:min(100vw, calc((100vh - 170px) * 16 / 9));
+    width:min(100vw, calc((100dvh - 170px) * 16 / 9)); height:auto; aspect-ratio:16/9; }
   .wrap:fullscreen .dots, .wrap:-webkit-full-screen .dots, .wrap.pfs .dots{ margin:0; flex:0 0 auto; }
   .wrap:fullscreen .panel, .wrap:-webkit-full-screen .panel, .wrap.pfs .panel{ margin:0; flex:0 0 auto;
     display:flex; flex-wrap:wrap; justify-content:center; gap:5px; max-width:98vw; }
-  .wrap:fullscreen .panel button, .wrap:-webkit-full-screen .panel button, .wrap.pfs .panel button{ width:auto; font-size:clamp(11px,2.6vw,15px); padding:7px 9px; box-shadow:0 3px 0 rgba(0,0,0,.35); }
-  .wrap:fullscreen .panel button.big, .wrap:-webkit-full-screen .panel button.big, .wrap.pfs .panel button.big{ font-size:clamp(12px,2.8vw,16px); padding:8px 11px; }
+  .wrap:fullscreen .panel button, .wrap:-webkit-full-screen .panel button, .wrap.pfs .panel button{ width:auto; font-size:clamp(11px,2.4vw,14px); padding:6px 9px; box-shadow:0 3px 0 rgba(0,0,0,.35); }
+  .wrap:fullscreen .panel button.big, .wrap:-webkit-full-screen .panel button.big, .wrap.pfs .panel button.big{ font-size:clamp(12px,2.6vw,15px); padding:7px 11px; }
 
   /* 古いブラウザ(幅比例cqw非対応)向けの固定px予備 */
   @supports not (width:1cqw){
@@ -192,13 +194,32 @@ const SCENES=[
 ];
 
 let cur=0, busy=false, cancel=false, bgmMuted=false;
-const audioEl=new Audio();
 const bgm=new Audio("bgm.mp3"); bgm.loop=true; bgm.volume=0.16;
-// iOS等：最初のタップで音声プレーヤーを解錠（待ちの後の再生がブロックされる問題の対策）
+
+// --- 音声：iPad/iOS で確実に鳴らすため Web Audio を使用（src 差し替えでクリップが抜ける問題の対策） ---
+const _AC = window.AudioContext || window.webkitAudioContext;
+let actx=null; try{ actx=_AC ? new _AC() : null; }catch(e){ actx=null; }
+let useWebAudio=!!actx;
+const _buffers={};             // name -> AudioBuffer（デコード済みキャッシュ）
+let curSrc=null;               // 再生中のソース（停止用）
+const seFallback=new Audio();  // Web Audio 不可時（file:// 等）の予備
+const SE_COUNT=24;             // se2/s01..sNN.wav を先読み
+function loadBuf(name){
+  if(_buffers[name]) return Promise.resolve(_buffers[name]);
+  return fetch("se2/"+name+".wav").then(r=>r.arrayBuffer()).then(ab=>new Promise((ok,ng)=>{
+    actx.decodeAudioData(ab, b=>{ _buffers[name]=b; ok(b); }, ng);
+  }));
+}
+function preloadAll(){ if(!useWebAudio) return;
+  for(let i=1;i<=SE_COUNT;i++){ loadBuf("s"+String(i).padStart(2,'0')).catch(()=>{}); } }
+
+// iOS等：最初のタップで音声を解錠（待ちの後の再生がブロックされる問題の対策）
 const _SILENT="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
 let _audioUnlocked=false;
 function unlockAudio(){ if(_audioUnlocked)return; _audioUnlocked=true;
-  try{ audioEl.src=_SILENT; const p=audioEl.play(); if(p&&p.then) p.then(()=>{ audioEl.pause(); audioEl.currentTime=0; }).catch(()=>{}); }catch(e){}
+  if(actx && actx.state==='suspended'){ actx.resume().catch(()=>{}); }
+  try{ seFallback.src=_SILENT; const p=seFallback.play(); if(p&&p.then) p.then(()=>{ seFallback.pause(); seFallback.currentTime=0; }).catch(()=>{}); }catch(e){}
+  preloadAll();
 }
 document.addEventListener('touchend',unlockAudio,{once:true});
 document.addEventListener('mousedown',unlockAudio,{once:true});
@@ -228,9 +249,23 @@ function setScene(n){
   dots.forEach((d,i)=>d.classList.toggle('on',i<=cur));
   $('prev').disabled=(cur===0); $('next').disabled=(cur===SCENES.length-1);
 }
-function stopAudio(){ cancel=true; audioEl.pause(); bgm.pause(); }   // 音声も音楽も止める
+function stopAudio(){ cancel=true;                                   // 音声も音楽も止める
+  if(curSrc){ try{ curSrc.stop(); }catch(e){} curSrc=null; }
+  try{ seFallback.pause(); }catch(e){}
+  bgm.pause(); }
 function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
-function playWav(name){ return new Promise(res=>{ audioEl.src="se2/"+name+".wav"; audioEl.onended=res; audioEl.onerror=res; audioEl.play().catch(()=>res()); }); }
+function playWav(name){
+  if(useWebAudio){
+    return new Promise(res=>{
+      const go=()=>loadBuf(name).then(buf=>{
+        const src=actx.createBufferSource(); src.buffer=buf; src.connect(actx.destination);
+        curSrc=src; src.onended=()=>{ if(curSrc===src) curSrc=null; res(); }; src.start(0);
+      }).catch(()=>{ useWebAudio=false; playWav(name).then(res); });   // 失敗時は予備(HTMLAudio)へ
+      if(actx.state==='suspended'){ actx.resume().then(go,go); } else { go(); }
+    });
+  }
+  return new Promise(res=>{ seFallback.src="se2/"+name+".wav"; seFallback.onended=res; seFallback.onerror=res; seFallback.play().catch(()=>res()); });
+}
 function popKW(t){ kwtext.textContent=t; kw.classList.add('on'); }
 function rain(n){ const c=["#ff6b7a","#ffd75e","#5fb85f","#5aa8e0","#c178e0","#ff9f4a"];
   for(let i=0;i<n;i++){ const e=document.createElement('i'); e.style.left=Math.random()*100+"%"; e.style.background=c[i%c.length];
