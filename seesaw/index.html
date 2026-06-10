@@ -199,7 +199,11 @@ const SCENES=[
 ];
 
 let cur=0, busy=false, cancel=false, bgmMuted=false;
-const bgm=new Audio("bgm.mp3"); bgm.loop=true; bgm.volume=0.10;
+const BGM_VOL=0.06;            // BGM音量（iOSは.volumeを無視するためWeb Audioのgainで制御）
+const bgm=new Audio("bgm.mp3"); bgm.loop=true; bgm.volume=1.0;
+let bgmGain=null, bgmWired=false;
+function wireBgm(){ if(bgmWired||!actx) return;
+  try{ const sn=actx.createMediaElementSource(bgm); bgmGain=actx.createGain(); bgmGain.gain.value=BGM_VOL; sn.connect(bgmGain); bgmGain.connect(actx.destination); bgmWired=true; }catch(e){ bgmWired=false; } }
 
 // --- 音声：iPad/iOS で確実に鳴らすため Web Audio を使用（src 差し替えでクリップが抜ける問題の対策） ---
 const _AC = window.AudioContext || window.webkitAudioContext;
@@ -234,8 +238,13 @@ const allLayers=["kanban","titletext","hint","sensei","sensei_joy","ki_sasou","a
 SCENES.forEach(()=>{const s=document.createElement('span');$('dots').appendChild(s);});
 const dots=document.querySelectorAll('#dots span');
 
-function startBgm(){ if(!bgmMuted && bgm.paused){ bgm.volume=0.10; bgm.play().catch(()=>{}); } }
-function fadeOutBgm(){ const step=()=>{ if(bgm.volume>0.02){ bgm.volume=Math.max(0,bgm.volume-0.02); setTimeout(step,70);} else { bgm.pause(); bgm.currentTime=0; bgm.volume=0.10; } }; step(); }
+function startBgm(){ if(bgmMuted) return; wireBgm();
+  if(actx && actx.state==='suspended'){ actx.resume().catch(()=>{}); }
+  if(bgmGain){ try{ bgmGain.gain.value=BGM_VOL; }catch(e){} } else { try{ bgm.volume=BGM_VOL; }catch(e){} }
+  if(bgm.paused){ bgm.play().catch(()=>{}); } }
+function fadeOutBgm(){
+  if(!bgmGain){ bgm.pause(); bgm.currentTime=0; bgm.volume=1.0; return; }
+  const step=()=>{ if(bgmGain.gain.value>0.005){ bgmGain.gain.value=Math.max(0,bgmGain.gain.value-BGM_VOL/6); setTimeout(step,70);} else { bgm.pause(); bgm.currentTime=0; bgmGain.gain.value=BGM_VOL; } }; step(); }
 function clearAll(){ allLayers.forEach(id=>$(id).classList.remove('show')); kw.classList.remove('on');
   $('cardrow').classList.remove('show'); cardIds.forEach(c=>{$(c).classList.remove('flip'); $(c).classList.remove('dim');}); }
 function tilt(deg){ $('seesawgroup').style.transform=`translateX(-50%) rotate(${deg}deg)`; }
@@ -343,7 +352,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') exitPfs(); });
 document.addEventListener('fullscreenchange',()=>{ $('fs').textContent = document.fullscreenElement ? '⛶ もとに もどす' : '⛶ ぜんがめん'; });
 $('stopbgm').onclick=()=>{ bgmMuted=!bgmMuted;
   if(bgmMuted){ bgm.pause(); $('stopbgm').textContent="♪ おんがく つける"; }
-  else { bgm.volume=0.10; bgm.play().catch(()=>{}); $('stopbgm').textContent="♪ おんがく とめる"; } };
+  else { startBgm(); $('stopbgm').textContent="♪ おんがく とめる"; } };
 
 setScene(0);
 </script>
