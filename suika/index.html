@@ -218,7 +218,7 @@ const SCENES=[
 ];
 
 let cur=0, busy=false, cancel=false, bgmMuted=false;
-const bgm=new Audio("bgm.mp3"); bgm.loop=true; bgm.volume=0.16;
+const bgm=new Audio("bgm.mp3"); bgm.loop=true; bgm.volume=0.10;
 
 // --- 音声：iPad/iOS で確実に鳴らすため Web Audio を使用（src 差し替えでクリップが抜ける問題の対策） ---
 const _AC = window.AudioContext || window.webkitAudioContext;
@@ -256,8 +256,8 @@ function showFrame(n){ for(let i=1;i<=9;i++) $('sw'+i).classList.remove('show');
 SCENES.forEach(()=>{const s=document.createElement('span');$('dots').appendChild(s);});
 const dots=document.querySelectorAll('#dots span');
 
-function startBgm(){ if(!bgmMuted && bgm.paused){ bgm.volume=0.16; bgm.play().catch(()=>{}); } }
-function fadeOutBgm(){ const step=()=>{ if(bgm.volume>0.02){ bgm.volume=Math.max(0,bgm.volume-0.02); setTimeout(step,70);} else { bgm.pause(); bgm.currentTime=0; bgm.volume=0.16; } }; step(); }
+function startBgm(){ if(!bgmMuted && bgm.paused){ bgm.volume=0.10; bgm.play().catch(()=>{}); } }
+function fadeOutBgm(){ const step=()=>{ if(bgm.volume>0.02){ bgm.volume=Math.max(0,bgm.volume-0.02); setTimeout(step,70);} else { bgm.pause(); bgm.currentTime=0; bgm.volume=0.10; } }; step(); }
 function clearAll(){ allLayers.forEach(id=>$(id).classList.remove('show')); $('board').classList.remove('show'); kw.classList.remove('on');
   for(let i=0;i<5;i++) $('slot'+i).classList.remove('on'); }
 function resetPos(){
@@ -387,7 +387,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') exitPfs(); });
 document.addEventListener('fullscreenchange',()=>{ $('fs').textContent = document.fullscreenElement ? '⛶ もとに もどす' : '⛶ ぜんがめん'; });
 $('stopbgm').onclick=()=>{ bgmMuted=!bgmMuted;
   if(bgmMuted){ bgm.pause(); $('stopbgm').textContent="♪ おんがく つける"; }
-  else { bgm.volume=0.16; bgm.play().catch(()=>{}); $('stopbgm').textContent="♪ おんがく とめる"; } };
+  else { bgm.volume=0.10; bgm.play().catch(()=>{}); $('stopbgm').textContent="♪ おんがく とめる"; } };
 
 setScene(0);
 </script>
