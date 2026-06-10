@@ -178,7 +178,37 @@ function loadBuf(name){
   }));
 }
 function preloadAll(){ if(!useWebAudio) return;
-  for(let i=1;i<=SE_COUNT;i++){ loadBuf("s"+String(i).padStart(2,'0')).catch(()=>{}); } }
+  for(let i=1;i<=SE_COUNT;i++){ loadBuf("s"+String(i).padStart(2,'0')).catch(()=>{}); }
+  loadSignal().catch(()=>{}); }
+
+// --- 信号機の音（青/GO の間ループ。5人が渡り終わるまで流す） ---
+let signalBuf=null, signalSrc=null;
+const signalFallback=new Audio("signal.m4a"); signalFallback.loop=true; signalFallback.volume=0.4;
+function loadSignal(){
+  if(!useWebAudio) return Promise.resolve(null);
+  if(signalBuf) return Promise.resolve(signalBuf);
+  return fetch("signal.m4a").then(r=>r.arrayBuffer()).then(ab=>new Promise((ok,ng)=>{
+    actx.decodeAudioData(ab, b=>{ signalBuf=b; ok(b); }, ng);
+  }));
+}
+function startSignal(){
+  if(signalSrc) return;                                  // 二重起動防止
+  if(useWebAudio){
+    const go=()=>loadSignal().then(buf=>{
+      if(signalSrc||!buf) return;
+      const src=actx.createBufferSource(); src.buffer=buf; src.loop=true;
+      const g=actx.createGain(); g.gain.value=0.4; src.connect(g); g.connect(actx.destination);
+      signalSrc=src; src.start(0);
+    }).catch(()=>{ try{ signalFallback.currentTime=0; signalFallback.play().catch(()=>{}); }catch(e){} });
+    if(actx.state==='suspended'){ actx.resume().then(go,go); } else go();
+  } else {
+    try{ signalFallback.currentTime=0; signalFallback.play().catch(()=>{}); }catch(e){}
+  }
+}
+function stopSignal(){
+  if(signalSrc){ try{ signalSrc.stop(); }catch(e){} signalSrc=null; }
+  try{ signalFallback.pause(); }catch(e){}
+}
 
 // iOS等：最初のタップで音声を解錠（待ちの後の再生がブロックされる問題の対策）
 const _SILENT="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
@@ -221,6 +251,7 @@ function setScene(n){
 function stopAudio(){ cancel=true;                                   // 音声も音楽も止める
   if(curSrc){ try{ curSrc.stop(); }catch(e){} curSrc=null; }
   try{ seFallback.pause(); }catch(e){}
+  stopSignal();                                                     // 信号機の音も止める
   bgm.pause(); }
 function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
 function playWav(name){
@@ -259,6 +290,7 @@ async function choreo(){
 
   if(s.type==="cross"){
     await say("s05",700); if(cancel)return;          // ひとりずつ じゅんばんに わたろう
+    startSignal();                                   // 青/GO の合図音を開始（5人渡り終わるまでループ）
     let order=[0,1,2,3,4];                           // 先頭(手前)から渡る
     for(let t=0;t<5;t++){
       if(cancel)return;
@@ -273,6 +305,7 @@ async function choreo(){
       place(kid, R[t].x, R[t].b, R[t].s, true, 900);              // 右歩道へ・反転して列に並ぶ
       await wait(1050); if(cancel)return;
     }
+    stopSignal();                                    // 5人全員 渡り終わったら 信号音を止める
     return;
   }
 
