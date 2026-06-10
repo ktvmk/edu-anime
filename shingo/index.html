@@ -69,16 +69,28 @@
   .wrap:fullscreen .panel button, .wrap:-webkit-full-screen .panel button, .wrap.pfs .panel button{ width:auto; font-size:clamp(11px,2.4vw,14px); padding:6px 9px; box-shadow:0 3px 0 rgba(0,0,0,.35); }
   .wrap:fullscreen .panel button.big, .wrap:-webkit-full-screen .panel button.big, .wrap.pfs .panel button.big{ font-size:clamp(12px,2.6vw,15px); padding:7px 11px; }
 
-  /* iPhone 等：画面が低い（横向きスマホ）ときは下部UIを小さくしてステージを確保 */
-  @media (max-height:480px){
-    .wrap:fullscreen, .wrap:-webkit-full-screen, .wrap.pfs{ gap:3px; padding:3px 0; }
-    .wrap:fullscreen .scenelabel, .wrap:-webkit-full-screen .scenelabel, .wrap.pfs .scenelabel{ font-size:clamp(10px,3vw,15px); }
-    .wrap:fullscreen .stage, .wrap:-webkit-full-screen .stage, .wrap.pfs .stage{
-      width:min(100vw, calc((100vh - 92px) * 16 / 9));
-      width:min(100vw, calc((100dvh - 92px) * 16 / 9)); }
-    .wrap:fullscreen .panel button, .wrap:-webkit-full-screen .panel button, .wrap.pfs .panel button{ font-size:clamp(10px,2.1vw,12px); padding:5px 7px; box-shadow:0 2px 0 rgba(0,0,0,.35); }
-    .wrap:fullscreen .panel button.big, .wrap:-webkit-full-screen .panel button.big, .wrap.pfs .panel button.big{ font-size:clamp(10px,2.3vw,13px); padding:5px 9px; }
-    .wrap:fullscreen .dots span, .wrap:-webkit-full-screen .dots span, .wrap.pfs .dots span{ min-width:7px; min-height:7px; margin:0 3px; }
+  /* iPhone 等：横向きで画面が低いときは、ステージを画面の高さいっぱいにして操作ボタンを右側の縦一列レールへ
+     （Safari の URL バー/タブで縦が狭くても、画像をできるだけ大きく見せるため） */
+  @media (orientation:landscape) and (max-height:600px){
+    .wrap:fullscreen, .wrap:-webkit-full-screen, .wrap.pfs{ flex-direction:row; align-items:center; justify-content:center; gap:0; padding:0; }
+    /* 場面名は上中央にオーバーレイ */
+    .wrap:fullscreen .scenelabel, .wrap:-webkit-full-screen .scenelabel, .wrap.pfs .scenelabel{
+      position:absolute; top:4px; left:50%; transform:translateX(-50%); z-index:50; margin:0;
+      background:rgba(16,36,26,.55); padding:2px 12px; border-radius:12px; font-size:clamp(11px,3.2vh,16px); }
+    /* ステージ＝画面の高さいっぱい（幅は16:9。右レール分だけ横を控える） */
+    .wrap:fullscreen .stage, .wrap:-webkit-full-screen .stage, .wrap.pfs .stage{ flex:0 0 auto;
+      width:min(calc(100vw - 120px), calc(100vh * 16 / 9));
+      width:min(calc(100vw - 120px), calc(100dvh * 16 / 9)); height:auto; aspect-ratio:16/9; }
+    /* ドットは省略して縦を稼ぐ */
+    .wrap:fullscreen .dots, .wrap:-webkit-full-screen .dots, .wrap.pfs .dots{ display:none; }
+    /* 操作ボタン＝右側に縦一列の細いレール */
+    .wrap:fullscreen .panel, .wrap:-webkit-full-screen .panel, .wrap.pfs .panel{
+      position:absolute; right:3px; top:50%; transform:translateY(-50%); margin:0;
+      display:flex; flex-direction:column; flex-wrap:nowrap; gap:4px; width:auto; max-width:none; z-index:50; }
+    .wrap:fullscreen .panel button, .wrap:-webkit-full-screen .panel button, .wrap.pfs .panel button{
+      width:108px; font-size:11px; line-height:1.15; padding:5px 4px; box-shadow:0 2px 0 rgba(0,0,0,.35); }
+    .wrap:fullscreen .panel button.big, .wrap:-webkit-full-screen .panel button.big, .wrap.pfs .panel button.big{
+      font-size:11px; padding:5px 4px; }
   }
 
   /* 古いブラウザ(幅比例cqw非対応)向けの固定px予備 */
