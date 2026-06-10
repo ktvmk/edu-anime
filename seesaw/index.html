@@ -87,6 +87,18 @@
   .wrap:fullscreen .panel button, .wrap:-webkit-full-screen .panel button, .wrap.pfs .panel button{ width:auto; font-size:clamp(11px,2.4vw,14px); padding:6px 9px; box-shadow:0 3px 0 rgba(0,0,0,.35); }
   .wrap:fullscreen .panel button.big, .wrap:-webkit-full-screen .panel button.big, .wrap.pfs .panel button.big{ font-size:clamp(12px,2.6vw,15px); padding:7px 11px; }
 
+  /* iPhone 等：画面が低い（横向きスマホ）ときは下部UIを小さくしてステージを確保 */
+  @media (max-height:480px){
+    .wrap:fullscreen, .wrap:-webkit-full-screen, .wrap.pfs{ gap:3px; padding:3px 0; }
+    .wrap:fullscreen .scenelabel, .wrap:-webkit-full-screen .scenelabel, .wrap.pfs .scenelabel{ font-size:clamp(10px,3vw,15px); }
+    .wrap:fullscreen .stage, .wrap:-webkit-full-screen .stage, .wrap.pfs .stage{
+      width:min(100vw, calc((100vh - 92px) * 16 / 9));
+      width:min(100vw, calc((100dvh - 92px) * 16 / 9)); }
+    .wrap:fullscreen .panel button, .wrap:-webkit-full-screen .panel button, .wrap.pfs .panel button{ font-size:clamp(10px,2.1vw,12px); padding:5px 7px; box-shadow:0 2px 0 rgba(0,0,0,.35); }
+    .wrap:fullscreen .panel button.big, .wrap:-webkit-full-screen .panel button.big, .wrap.pfs .panel button.big{ font-size:clamp(10px,2.3vw,13px); padding:5px 9px; }
+    .wrap:fullscreen .dots span, .wrap:-webkit-full-screen .dots span, .wrap.pfs .dots span{ min-width:7px; min-height:7px; margin:0 3px; }
+  }
+
   /* 古いブラウザ(幅比例cqw非対応)向けの固定px予備 */
   @supports not (width:1cqw){
     .scenelabel{ font-size:23px; min-height:28px; }
@@ -291,27 +303,32 @@ async function playAll(start){
 }
 function setBtns(on){ $('playall').textContent=on?"さいせい中…":"▶ ぜんぶ さいせい"; $('playall').disabled=on; $('play').disabled=on; }
 
-$('playall').onclick=()=>playAll();
+$('playall').onclick=()=>{ enterFullscreen(); playAll(); };   // 全部再生で自動的に全画面へ
 $('pause').onclick=()=>{ if(busy){ stopAudio(); busy=false; setBtns(false); $('pause').textContent="▶ つづき"; } else { playAll(cur); } };
 $('play').onclick=()=>playOne();
 $('next').onclick=()=>{ stopAudio(); busy=false; setBtns(false); $('pause').textContent="⏸ ストップ"; setScene(cur+1); };
 $('prev').onclick=()=>{ stopAudio(); busy=false; setBtns(false); $('pause').textContent="⏸ ストップ"; setScene(cur-1); };
 $('replay').onclick=()=>{ stopAudio(); busy=false; setBtns(false); $('pause').textContent="⏸ ストップ"; setScene(0); };
 function exitPfs(){ const w=document.querySelector('.wrap'); if(w.classList.contains('pfs')){ w.classList.remove('pfs'); $('fs').textContent='⛶ ぜんがめん'; } }
+function enterFullscreen(){
+  const w=document.querySelector('.wrap');
+  if(w.classList.contains('pfs') || document.fullscreenElement) return;    // すでに全画面なら何もしない
+  const req=w.requestFullscreen||w.webkitRequestFullscreen;
+  if(document.fullscreenEnabled && req){
+    try{ const p=req.call(w); if(p&&p.catch) p.catch(()=>{}); }catch(e){}
+    setTimeout(()=>{ if(!document.fullscreenElement){ w.classList.add('pfs'); $('fs').textContent='⛶ もとに もどす'; } }, 350); // 効かない環境(iPhone/学校PC等)は擬似全画面へ自動切替
+  } else {
+    w.classList.add('pfs'); $('fs').textContent='⛶ もとに もどす';
+  }
+}
 $('fs').onclick=()=>{
   const w=document.querySelector('.wrap');
   if(w.classList.contains('pfs')){ exitPfs(); return; }
   if(document.fullscreenElement){ document.exitFullscreen?.(); return; }
-  const req=w.requestFullscreen||w.webkitRequestFullscreen;
-  if(document.fullscreenEnabled && req){
-    try{ const p=req.call(w); if(p&&p.catch) p.catch(()=>{}); }catch(e){}
-    setTimeout(()=>{ if(!document.fullscreenElement){ w.classList.add('pfs'); $('fs').textContent='⛶ もとに もどす'; } }, 350);
-  } else {
-    w.classList.add('pfs'); $('fs').textContent='⛶ もとに もどす';
-  }
+  enterFullscreen();
 };
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') exitPfs(); });
-document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElement) $('fs').textContent='⛶ ぜんがめん'; });
+document.addEventListener('fullscreenchange',()=>{ $('fs').textContent = document.fullscreenElement ? '⛶ もとに もどす' : '⛶ ぜんがめん'; });
 $('stopbgm').onclick=()=>{ bgmMuted=!bgmMuted;
   if(bgmMuted){ bgm.pause(); $('stopbgm').textContent="♪ おんがく つける"; }
   else { bgm.volume=0.16; bgm.play().catch(()=>{}); $('stopbgm').textContent="♪ おんがく とめる"; } };
